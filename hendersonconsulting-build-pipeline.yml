@@ -16,8 +16,14 @@ variables:
 
 steps:
 - task: UseDotNet@2
-  displayName: 'Use .Net 3.x'
+  displayName: 'use .net 3.x'
   inputs: 
     packageType: sdk
     version: 3.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
+- task: DotNetCoreCLI@2
+  displayName: 'donet restore'
+  inputs:
+    command: 'restore'
+    projects: '$(solution)'
+    feedsToUse: 'select'
