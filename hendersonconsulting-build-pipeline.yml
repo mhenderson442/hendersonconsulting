@@ -37,3 +37,15 @@ steps:
   inputs:
     command: 'publish'
     publishWebProjects: true
+- task: CopyFiles@2
+  displayName: 'copy files $(Build.ArtifactStagingDirectory)'
+  inputs:
+    SourceFolder: '$(Build.SourcesDirectory)'
+    Contents: '**/hendersonconsulting/**/?(*.zip)'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+- task: PublishBuildArtifacts@1
+  displayName: 'publish build artifacts to $(Build.ArtifactStagingDirectory)'
+  inputs:
+    PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+    ArtifactName: 'drop'
+    publishLocation: 'Container'
