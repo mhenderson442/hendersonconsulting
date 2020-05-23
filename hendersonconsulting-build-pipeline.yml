@@ -22,13 +22,18 @@ steps:
     version: 3.x
     installationPath: $(Agent.ToolsDirectory)/dotnet
 - task: DotNetCoreCLI@2
-  displayName: 'donet restore'
+  displayName: 'dotnet restore'
   inputs:
     command: 'restore'
     projects: '$(solution)'
     feedsToUse: 'select'
 - task: DotNetCoreCLI@2
-  displayName: 'donet build'
+  displayName: 'dotnet build'
   inputs:
     command: 'build'
     projects: '$(solution)'
+- task: DotNetCoreCLI@2
+  displayName: 'dotnet publish'
+  inputs:
+    command: 'publish'
+    publishWebProjects: true
