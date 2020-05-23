@@ -27,3 +27,8 @@ steps:
     command: 'restore'
     projects: '$(solution)'
     feedsToUse: 'select'
+- task: DotNetCoreCLI@2
+  displayName: 'donet build'
+  inputs:
+    command: 'build'
+    projects: '$(solution)'
