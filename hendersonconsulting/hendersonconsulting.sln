@@ -12,6 +12,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pipelines", "pipelines", "{
 		..\hendersonconsulting-build-pipeline.yml = ..\hendersonconsulting-build-pipeline.yml
 	EndProjectSection
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{449CF3FB-ACB0-433A-BDD6-7F642CF9797D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "hendersonconsulting.test", "..\hendersonconsulting.test\hendersonconsulting.test.csproj", "{8FFB2067-6E25-46A3-80A3-A9DFAF505977}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -22,12 +26,17 @@ Global
 		{FB869029-4CA3-4B47-A1D0-8EFAEF061505}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FB869029-4CA3-4B47-A1D0-8EFAEF061505}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FB869029-4CA3-4B47-A1D0-8EFAEF061505}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8FFB2067-6E25-46A3-80A3-A9DFAF505977}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8FFB2067-6E25-46A3-80A3-A9DFAF505977}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8FFB2067-6E25-46A3-80A3-A9DFAF505977}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8FFB2067-6E25-46A3-80A3-A9DFAF505977}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{FB869029-4CA3-4B47-A1D0-8EFAEF061505} = {B17F5597-8DCD-48C1-A61D-297B8F1686FA}
+		{8FFB2067-6E25-46A3-80A3-A9DFAF505977} = {449CF3FB-ACB0-433A-BDD6-7F642CF9797D}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9CF4B8A4-4B86-4696-BA68-271AB9D91656}
