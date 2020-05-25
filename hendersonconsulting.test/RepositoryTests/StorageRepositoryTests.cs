@@ -43,7 +43,7 @@ namespace HendersonConsulting.Test.RepositoryTests
         {
             // Arrange
             // Act
-            var sut = await _storageRepository.GetBlogPostListAsync();
+            var sut = await _storageRepository.GetBlogPostYearsAsync();
 
             // Assert
             Assert.IsType<List<BlogPostYear>>(sut);
@@ -84,7 +84,7 @@ namespace HendersonConsulting.Test.RepositoryTests
             var name = "reboot";
 
             // Act
-            var sut = await _storageRepository.GetBlogPostItemAsync(year, month, day, name);
+            var sut = await _storageRepository.GetBlogPostContentAsync(year, month, day, name);
 
             // Assert
             Assert.IsType<BlogPostContent>(sut);

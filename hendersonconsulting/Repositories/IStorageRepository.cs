@@ -10,7 +10,7 @@ namespace HendersonConsulting.Repositories
 
     public interface IStorageRepository
     {
-        Task<List<BlogPostYear>> GetBlogPostListAsync();
+        Task<List<BlogPostYear>> GetBlogPostYearsAsync();
 
         Task<CloudBlobClient> GetCloudBlobClientAsync();
 
@@ -18,7 +18,7 @@ namespace HendersonConsulting.Repositories
 
         Task<string> GetStaticContentBaseUrlAsync();
 
-        Task<BlogPostContent> GetBlogPostItemAsync(string year, string month, string day, string name);
+        Task<BlogPostContent> GetBlogPostContentAsync(string year, string month, string day, string name);
 
         Task<CloudBlockBlob> GetImageBlobAsych(string itemPath);
 

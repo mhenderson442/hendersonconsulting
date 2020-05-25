@@ -33,7 +33,7 @@ namespace HendersonConsulting.Repositories
             };
         }
 
-        public async Task<BlogPostContent> GetBlogPostItemAsync(string year, string month, string day, string name)
+        public async Task<BlogPostContent> GetBlogPostContentAsync(string year, string month, string day, string name)
         {
             var blobName = $"{ year }/{ month }/{ day }/{ name }.md";
             var client = await GetCloudBlobClientAsync();
@@ -42,55 +42,50 @@ namespace HendersonConsulting.Repositories
             var blogPostItem = container.GetBlockBlobReference(blobName);
 
             var stream = await blogPostItem.OpenReadAsync(null, null, new OperationContext());
-            var datePosted = await FormatDatePostedString(blogPostItem.Parent.Prefix);
+            var datePosted = await FormatDatePostedStringAsync(blogPostItem.Parent.Prefix);
 
-            using (var reader = new StreamReader(stream))
+            using var reader = new StreamReader(stream);
+            var contentBuilder = new StringBuilder();
+            var blobContent = await reader.ReadToEndAsync();
+
+            var blogPostContent = new BlogPostContent
             {
-                var contentBuilder = new StringBuilder();
-                var blobContent = await reader.ReadToEndAsync();
+                DatePosted = datePosted,
+                PageContent = blobContent
+            };
 
-                var blogPostContent = new BlogPostContent
-                {
-                    DatePosted = datePosted,
-                    PageContent = blobContent
-                };
-
-                return blogPostContent;
-            }
+            return blogPostContent;
         }
 
-        public async Task<List<BlogPostYear>> GetBlogPostListAsync()
+        public async Task<List<BlogPostYear>> GetBlogPostYearsAsync()
         {
-            var blogPostContainer = _appSettings.BlogPostContainer;
-            var blobList = await GetBlobList(blogPostContainer);
+            var blobList = await GetBlobList(_appSettings.BlogPostContainer);
 
             if (blobList.Count == 0)
             {
                 return null;
             }
 
-            var list = await GetBlogYears(blobList);
+            var BlogPostYears = await GetBlogYearsAsync(blobList);
 
-            return list;
+            return BlogPostYears;
         }
 
         public async Task<List<Category>> GetCategoriesAsync()
         {
-            var client = await GetCloudBlobClientAsync();
-            var container = client.GetContainerReference(_appSettings.StaticContainer);
+            var cloudBlobClient = await GetCloudBlobClientAsync();
+            var container = cloudBlobClient.GetContainerReference(_appSettings.StaticContainer);
 
             var categoriesFile = container.GetBlockBlobReference("categories.json");
-            var operatopnContext = new OperationContext();
+            var operationContext = new OperationContext();
 
-            var stream = await categoriesFile.OpenReadAsync(null, null, operatopnContext);
+            var stream = await categoriesFile.OpenReadAsync(null, null, operationContext);
 
-            using (var reader = new StreamReader(stream))
-            {
-                var list = JsonConvert.DeserializeObject<List<Category>>(await reader.ReadToEndAsync());
-                list.ForEach(f => f.BlogPostItems.ForEach(fx => fx.Name = FormatName(fx.Name)));
+            using var reader = new StreamReader(stream);
+            var categories = JsonConvert.DeserializeObject<List<Category>>(await reader.ReadToEndAsync());
+            categories.ForEach(f => f.BlogPostItems.ForEach(fx => fx.Name = FormatName(fx.Name)));
 
-                return list;
-            }
+            return categories;
         }
 
         public async Task<CloudBlobClient> GetCloudBlobClientAsync()
@@ -117,7 +112,7 @@ namespace HendersonConsulting.Repositories
             var operationContext = new OperationContext();
             var stream = await blob.OpenReadAsync(null, null, operationContext);
 
-            var datePosted = await FormatDatePostedString(blob.Parent.Prefix);
+            var datePosted = await FormatDatePostedStringAsync(blob.Parent.Prefix);
 
             using var reader = new StreamReader(stream);
             var contentBuilder = new StringBuilder();
@@ -135,21 +130,20 @@ namespace HendersonConsulting.Repositories
 
         public async Task<CloudBlockBlob> GetImageBlobAsych(string itemPath)
         {
-            var blobList = await GetBlobList(_appSettings.ImagesContainer);
+            var cloudBlockBobs = await GetBlobList(_appSettings.ImagesContainer);
 
-            var imageBlob = blobList
+            var imageBlob = cloudBlockBobs
                 .Where(x => x.GetType() == typeof(CloudBlockBlob))
                 .Select(x => (CloudBlockBlob)x)
                 .FirstOrDefault(x => x.Name == itemPath);
 
-            return await Task.Run(() => imageBlob);
+            return imageBlob;
         }
 
         public async Task<string> GetStaticContentBaseUrlAsync()
         {
-
             var cloudStorageAccount = GetCloudStorageAccount(_appSettings.StorageAccountName, _appSettings.StorageAccountKey);
-            var staticContentUrl = await Task.Run(function: () => string.Format("{0}/{1}", cloudStorageAccount.BlobEndpoint.ToString().TrimEnd('/'), _appSettings.BlogPostContainer.TrimStart('/')));
+            var staticContentUrl = await Task.Run(function: () => $"{cloudStorageAccount.BlobEndpoint.ToString().TrimEnd('/')}/{_appSettings.BlogPostContainer.TrimStart('/')}");
 
             return staticContentUrl;
         }
@@ -157,12 +151,11 @@ namespace HendersonConsulting.Repositories
         private static int ConvertStringToInt(string input)
         {
             var result = int.TryParse(input, out int output);
-            var converted = result ? output : 0;
 
-            return converted;
+            return result ? output : 0;
         }
 
-        private static async Task<string> FormatDatePostedString(string prefix)
+        private static async Task<string> FormatDatePostedStringAsync(string prefix)
         {
             var year = prefix.Substring(0, 4);
             var month = GetMonthLong(prefix.Substring(5, 2));
@@ -173,31 +166,23 @@ namespace HendersonConsulting.Repositories
             return datePostedString;
         }
 
-        private static string FormatName(string input)
-        {
-            var cultureInfo = Thread.CurrentThread.CurrentCulture;
-            var textInfo = cultureInfo.TextInfo;
-
-            return textInfo.ToTitleCase(input);
-        }
+        private static string FormatName(string input) => Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(input);
 
         private static string FormatName(string input, string prefix)
         {
-            var cultureInfo = Thread.CurrentThread.CurrentCulture;
-            var textInfo = cultureInfo.TextInfo;
-
             var output = input
                 .Replace(prefix, string.Empty)
                 .Replace(".md", string.Empty);
 
-            var formattedName = textInfo.ToTitleCase(output);
+            var formattedName = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(output);
 
             return formattedName;
         }
 
         private static CloudStorageAccount GetCloudStorageAccount(string storageAccountName, string storageAccountKey)
         {
-            var cloudStorageAccount = new CloudStorageAccount(new StorageCredentials(storageAccountName, storageAccountKey), true);
+            var storageCredentials = new StorageCredentials(storageAccountName, storageAccountKey);
+            var cloudStorageAccount = new CloudStorageAccount(storageCredentials, true);
             return cloudStorageAccount;
         }
 
@@ -224,8 +209,8 @@ namespace HendersonConsulting.Repositories
 
         private async Task<List<CloudBlockBlob>> GetBlobList(string container)
         {
-            var blobClient = await GetCloudBlobClientAsync();
-            var containerReference = blobClient.GetContainerReference(container);
+            var cloudBlobClient = await GetCloudBlobClientAsync();
+            var containerReference = cloudBlobClient.GetContainerReference(container);
 
             var results = new List<IListBlobItem>();
             BlobContinuationToken continuationToken = null;
@@ -239,19 +224,19 @@ namespace HendersonConsulting.Repositories
             }
             while (continuationToken != null);
 
-            var blobList = results
+            var cloudBlockBlobs = results
                 .Where(x => x.GetType() == typeof(CloudBlockBlob))
                 .Select(x => (CloudBlockBlob)x)
                 .ToList();
 
-            return blobList;
+            return cloudBlockBlobs;
         }
 
-        private async Task<List<BlogPostDay>> GetBlogDays(List<CloudBlockBlob> blobList)
+        private async Task<List<BlogPostDay>> GetBlogDays(List<CloudBlockBlob> cloudBlockBlobs)
         {
-            var posts = await GetBlogPosts(blobList);
+            var posts = await GetBlogPostsAsync(cloudBlockBlobs);
 
-            var days = blobList
+            var days = cloudBlockBlobs
                 .GroupBy(x => x.Parent.Prefix)
                 .Select(grp => grp.First())
                 .ToList()
@@ -264,14 +249,14 @@ namespace HendersonConsulting.Repositories
                 })
                 .ToList();
 
-            return await Task.Run(function: () => days);
+            return days;
         }
 
-        private async Task<List<BlogPostMonth>> GetBlogMonths(List<CloudBlockBlob> blobList)
+        private async Task<List<BlogPostMonth>> GetBlogMonthsAsync(List<CloudBlockBlob> cloudBlockBlobs)
         {
-            var items = await GetBlogPosts(blobList);
+            var items = await GetBlogPostsAsync(cloudBlockBlobs);
 
-            var months = blobList
+            var months = cloudBlockBlobs
                 .GroupBy(x => x.Parent.Parent.Prefix)
                 .Select(grp => grp.First())
                 .ToList()
@@ -284,12 +269,12 @@ namespace HendersonConsulting.Repositories
                 })
                 .ToList();
 
-            return await Task.Run(function: () => months);
+            return months;
         }
 
-        private async Task<List<BlogPostItem>> GetBlogPosts(List<CloudBlockBlob> blobList)
+        private async Task<List<BlogPostItem>> GetBlogPostsAsync(List<CloudBlockBlob> cloudBlockBlobs)
         {
-            var posts = blobList
+            var posts = cloudBlockBlobs
                 .Where(x => x.GetType() == typeof(CloudBlockBlob))
                 .Select(x => (CloudBlockBlob)x)
                 .ToList()
@@ -303,9 +288,9 @@ namespace HendersonConsulting.Repositories
             return await Task.Run(function: () => posts);
         }
 
-        private async Task<List<BlogPostYear>> GetBlogYears(List<CloudBlockBlob> blobList)
+        private async Task<List<BlogPostYear>> GetBlogYearsAsync(List<CloudBlockBlob> blobList)
         {
-            var months = await GetBlogMonths(blobList);
+            var months = await GetBlogMonthsAsync(blobList);
 
             var years = blobList
                 .GroupBy(x => x.Parent.Parent.Parent.Prefix)
@@ -320,7 +305,7 @@ namespace HendersonConsulting.Repositories
                 .OrderByDescending(x => x.Year)
                 .ToList();
 
-            return await Task.Run(function: () => years);
+            return years;
         }
     }
 }
