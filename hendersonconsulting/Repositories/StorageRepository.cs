@@ -148,6 +148,22 @@ namespace HendersonConsulting.Repositories
             return staticContentUrl;
         }
 
+        public async Task<string> GetStaticPageContentAsync(string fileName)
+        {
+            var cloudBlobClient = await GetCloudBlobClientAsync();
+            var container = cloudBlobClient.GetContainerReference(_appSettings.StaticContainer);
+
+            var categoriesFile = container.GetBlockBlobReference(fileName);
+            var operationContext = new OperationContext();
+
+            var stream = await categoriesFile.OpenReadAsync(null, null, operationContext);
+
+            using var reader = new StreamReader(stream);
+            var content = await reader.ReadToEndAsync();
+
+            return content;
+        }
+
         private static int ConvertStringToInt(string input)
         {
             var result = int.TryParse(input, out int output);

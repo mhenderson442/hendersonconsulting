@@ -25,16 +25,21 @@ namespace HendersonConsulting.Test.RepositoryTests
             _storageRepository = new StorageRepository(logger.Object, configuration);
         }
 
-        [Fact(DisplayName = "GetStaticContentBaseUrl should return a string")]
+        [Fact(DisplayName = "GetBlogPostItemAsync should return a CloudBlobClient")]
         [Trait("Category", "StorageRepositoryTests")]
-        public async Task GetStaticContentBaseUrlAsyncReturnsString()
+        public async Task GetBlogAsyncPostItemReturnsCloudBlobClient()
         {
             // Arrange
+            var year = "2018";
+            var month = "04";
+            var day = "07";
+            var name = "reboot";
+
             // Act
-            var sut = await _storageRepository.GetStaticContentBaseUrlAsync();
+            var sut = await _storageRepository.GetBlogPostContentAsync(year, month, day, name);
 
             // Assert
-            Assert.IsType<string>(sut);
+            Assert.IsType<BlogPostContent>(sut);
         }
 
         [Fact(DisplayName = "GetPostItemsAsync should return a list of type PostYears")]
@@ -47,6 +52,31 @@ namespace HendersonConsulting.Test.RepositoryTests
 
             // Assert
             Assert.IsType<List<BlogPostYear>>(sut);
+        }
+
+        [Fact(DisplayName = "GetCategoriesAsync should return a list of type Category")]
+        [Trait("Category", "StorageRepositoryTests")]
+        public async Task GetCategoriesAsyncReturnsList()
+        {
+            // Arrange
+            // Act
+            var sut = await _storageRepository.GetCategoriesAsync();
+
+            // Assert
+            Assert.IsType<List<Category>>(sut);
+        }
+        [Fact(DisplayName = "GetStaticPageContent should return a string")]
+        [Trait("Category", "StorageRepositoryTests")]
+        public async Task GetStaticPageContentReturnsString()
+        {
+            // Arrange
+            var fileName = "sql-style-guide.md"; 
+
+            // Act
+            var sut = await _storageRepository.GetStaticPageContentAsync(fileName);
+
+            // Assert
+            Assert.IsType<string>(sut);
         }
 
         [Fact(DisplayName = "GetCloudBlobClient should return a an instance of a CloudBlobClient")]
@@ -73,24 +103,6 @@ namespace HendersonConsulting.Test.RepositoryTests
             Assert.IsType<BlogPostContent>(sut);
         }
 
-        [Fact(DisplayName = "GetBlogPostItemAsync should return a CloudBlobClient")]
-        [Trait("Category", "StorageRepositoryTests")]
-        public async Task GetBlogAsyncPostItemReturnsCloudBlobClient()
-        {
-            // Arrange
-            var year = "2018";
-            var month = "04";
-            var day = "07";
-            var name = "reboot";
-
-            // Act
-            var sut = await _storageRepository.GetBlogPostContentAsync(year, month, day, name);
-
-            // Assert
-            Assert.IsType<BlogPostContent>(sut);
-        }
-
-
         [Fact(DisplayName = "GetImageBlobAsych should return a CloudBlockBlob")]
         [Trait("Category", "StorageRepositoryTests")]
         public async Task GetImageBlobAsychReturnsCloudBlockBlob()
@@ -105,16 +117,16 @@ namespace HendersonConsulting.Test.RepositoryTests
             Assert.IsType<CloudBlockBlob>(sut);
         }
 
-        [Fact(DisplayName = "GetCategoriesAsync should return a list of type Category")]
+        [Fact(DisplayName = "GetStaticContentBaseUrl should return a string")]
         [Trait("Category", "StorageRepositoryTests")]
-        public async Task GetCategoriesAsyncReturnsList()
+        public async Task GetStaticContentBaseUrlAsyncReturnsString()
         {
             // Arrange
             // Act
-            var sut = await _storageRepository.GetCategoriesAsync();
+            var sut = await _storageRepository.GetStaticContentBaseUrlAsync();
 
             // Assert
-            Assert.IsType<List<Category>>(sut);
+            Assert.IsType<string>(sut);
         }
     }
 }
